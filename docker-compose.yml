@@ -31,9 +31,9 @@ services:
     tty: true
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: user
-      POSTGRES_DB: bfcf_db
+      POSTGRES_USER: 
+      POSTGRES_PASSWORD: 
+      POSTGRES_DB: 
     volumes:
       - ./setup_pgsql/code1:/var/lib/postgresql/data:rw
     ports:
