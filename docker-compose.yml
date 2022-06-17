@@ -1,0 +1,92 @@
+version: '3'
+
+services:
+
+  web:
+     build:
+       context: ./docker/code1
+       dockerfile: Dockerfile
+     image: web_be
+     environment:
+       - ALLOW_OVERRIDE=true
+     ports:
+       - "80:80"
+     networks:
+       - bitfalcon_network
+     env_file:
+       - setup_env/code1/.env
+     container_name: web_be
+     links:
+       - db
+     volumes:
+       - ./code1:/var/www/html/code1:rw
+       - ./setup_apache/code1/vhost.conf:/etc/apache2/sites-available/000-default.conf:rw
+     networks:
+       - bitfalcon_network
+
+
+  db:
+    image: postgres
+    restart: always
+    tty: true
+    volumes:
+      #- ./setup_pgsql/code1:/var/lib/pgsql:rw
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: user
+      POSTGRES_DB: bfcf_db
+      #PGDATA: /data/postgres
+    volumes:
+      - ./setup_pgsql/code1:/var/lib/postgresql/data:rw
+      #- ./init-database.sh:/docker-entrypoint-initdb.d/init-database.sh:rw
+    ports:
+      - 5432:5432
+    networks:
+      - bitfalcon_network
+    #command: "--wal_keep_segments=32 --logging_collector=off"
+    container_name: dtbase
+
+
+  pgadmin4:
+    image: dpage/pgadmin4
+    links:
+      - db
+    ports:
+      - 8080:80
+    volumes:
+      - ./setup_pgadmin/code1:/var/lib/pgadmin:rw
+    networks:
+      - bitfalcon_network
+    container_name: back
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: smimran@gmx.com
+      PGADMIN_DEFAULT_PASSWORD: user
+      PGADMIN_LISTEN_PORT: 80
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+   
+
+  api:
+     build:
+       context: ./docker/code2
+       dockerfile: Dockerfile
+     image: web_fe
+     environment:
+       - ALLOW_OVERRIDE=true
+     ports:
+       - "83:80"
+     networks:
+       - bitfalcon_network
+     container_name: web_fe
+     links:
+       - web
+     volumes:
+       - ./code2:/var/www/html/code2:rw
+       - ./setup_apache/code2/vhost.conf:/etc/apache2/sites-available/000-default.conf:rw
+     networks:
+       - bitfalcon_network
+
+networks:
+  bitfalcon_network:
+    driver: bridge
